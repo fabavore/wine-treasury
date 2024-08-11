@@ -42,9 +42,19 @@ mod_dashboard_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    wines <- reactiveVal({
-      fakir::fake_products(5)
-    })
+    wines <- reactiveVal(
+      data.frame(
+        rowid = c(1, 2, 3, 4, 5),
+        shelf = c("101", "202", "303", "404", "505"),
+        amount = c(1, 3, 1, 2, 1),
+        vintage = c(2015, 2018, 2019, 2016, 2020),
+        variety = c("Riesling", "Cabernet Sauvignon", "Spätburgunder", "Sangiovese", "Malbec"),
+        name = c("Müller Thurgau", "Margaux", "Schmidt Pinot Noir", "Sassicaia", "Catena Alta"),
+        winery = c("Weingut Müller", "Château Margaux", "Weingut Schmidt", "Tenuta San Guido", "Bodega Catena Zapata"),
+        region = c("Mosel", "Bordeaux", "Pfalz", "Toskana", "Mendoza"),
+        country = c("Deutschland", "Frankreich", "Deutschland", "Italien", "Argentinien")
+      )
+    )
 
     shelf_cap <- reactiveVal(6)
 

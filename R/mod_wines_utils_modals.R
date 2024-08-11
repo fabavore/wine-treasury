@@ -50,8 +50,20 @@ add_wine_modal <- function(ns, wines, shelf_cap) {
   )
 }
 
-remove_wine_modal <- function(ns) {
+remove_wine_modal <- function(ns, wine, cols) {
   modalDialog(
+    title = "Wein entnehmen",
+    renderTable(
+      data.frame(
+        key = wine() |> dplyr::select(dplyr::all_of(cols)) |> names(),
+        val = wine() |> dplyr::select(dplyr::all_of(cols)) |> as.character() |> as.vector()
+      ),
+      colnames = FALSE
+    ),
+    numericInput(
+      ns("remove_count"), "Entnahmemenge:",
+      value = 1, min = 1, max = 6, step = 1
+    ),
     footer = tagList(
       modalButton("Abbrechen"),
       bs4Dash::actionButton(ns("btn_remove_confirm"), "Bestätigen", status = "primary")

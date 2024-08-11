@@ -36,8 +36,20 @@ mod_wines_server <- function(id, wines, shelf_cap){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    cols <- c(
+      "Regalnr." = "shelf",
+      "Menge" = "amount",
+      "Jahrgang" = "vintage",
+      "Rebsorte(n)" = "variety",
+      "Name" = "name",
+      "Weingut" = "winery",
+      "Anbaugebiet" = "region",
+      "Land" = "country"
+    )
+
     output$dt_wines <- renderDT({
-      wines()
+      wines() |>
+        dplyr::select(dplyr::all_of(cols))
     },
     options = list(
       language = list(
@@ -65,7 +77,7 @@ mod_wines_server <- function(id, wines, shelf_cap){
     }) |> bindEvent(input$btn_add_confirm)
 
     observe({
-      showModal(remove_wine_modal(ns))
+      showModal(remove_wine_modal(ns, wine_selected, cols))
     }) |> bindEvent(input$btn_remove)
 
     observe({
