@@ -1,4 +1,4 @@
-add_wine_modal <- function(ns, wines, shelf_cap) {
+add_wine_modal <- function(ns, wines, shelf_slot_cap) {
   modalDialog(
     title = "Neuen Wein eintragen",
     numericInput(
@@ -35,11 +35,11 @@ add_wine_modal <- function(ns, wines, shelf_cap) {
       options = list(create = TRUE, placeholder = "Land auswählen...")
     ),
     numericInput(
-      ns("amount"), "Menge:", value = 1,
-      min = 1, max = shelf_cap, step = 1
+      ns("bottle_count"), "Anzahl:", value = 1,
+      min = 1, max = shelf_slot_cap, step = 1
     ),
     textInput(
-      ns("shelf"), "Regalnummer:", placeholder = "Regalnummer eingeben..."
+      ns("shelf_slot"), "Regalfach:", placeholder = "Regalfach eingeben..."
     ),
     footer = tagList(
       modalButton("Abbrechen"),

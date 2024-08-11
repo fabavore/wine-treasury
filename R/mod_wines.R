@@ -32,13 +32,13 @@ mod_wines_ui <- function(id){
 #' wines Server Functions
 #'
 #' @noRd
-mod_wines_server <- function(id, wines, shelf_cap){
+mod_wines_server <- function(id, wines, shelf_slot_cap){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
     cols <- c(
-      "Regalnr." = "shelf",
-      "Menge" = "amount",
+      "Regalfach" = "shelf_slot",
+      "Anzahl" = "bottle_count",
       "Jahrgang" = "vintage",
       "Rebsorte(n)" = "variety",
       "Name" = "name",
@@ -69,11 +69,11 @@ mod_wines_server <- function(id, wines, shelf_cap){
     })
 
     observe({
-      showModal(add_wine_modal(ns, wines(), shelf_cap()))
+      showModal(add_wine_modal(ns, wines(), shelf_slot_cap()))
     }) |> bindEvent(input$btn_add)
 
     observe({
-      shinyjs::toggleState("btn_add_confirm", condition = input$shelf != "")
+      shinyjs::toggleState("btn_add_confirm", condition = input$shelf_slot != "")
     })
 
     observe({
@@ -81,8 +81,8 @@ mod_wines_server <- function(id, wines, shelf_cap){
         dplyr::rows_append(
           tibble::tibble(
             rowid = max(wines()$rowid) + 1,
-            shelf = input$nshelf,
-            amount = input$amount,
+            shelf_slot = input$shelf_slot,
+            bottle_count = input$bottle_count,
             vintage = input$vintage,
             variety = paste(input$variety, collapse = ", "),
             name = input$name,

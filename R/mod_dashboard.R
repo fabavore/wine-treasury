@@ -17,13 +17,53 @@ mod_dashboard_ui <- function(id){
       sidebar = bs4Dash::dashboardSidebar(
         bs4Dash::sidebarMenu(
           bs4Dash::menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-          bs4Dash::menuItem("Weine", tabName = "wines", icon = icon("wine-bottle"), selected = T)
+          bs4Dash::menuItem("Weine", tabName = "wines", icon = icon("wine-bottle"))
         )
       ),
       body = bs4Dash::dashboardBody(
         bs4Dash::tabItems(
           bs4Dash::tabItem(
-            tabName = "dashboard"
+            tabName = "dashboard",
+            fluidRow(
+              bs4Dash::valueBox(
+                value = textOutput(ns("total_amount")),
+                subtitle = "Gesamtzahl der Flaschen",
+                icon = icon("wine-bottle"),
+                color = "primary"
+              ),
+              bs4Dash::valueBox(
+                value = textOutput(ns("mean_age")),
+                subtitle = "Durchschnittliches Alter",
+                icon = icon("hourglass-half"),
+                color = "primary"
+              ),
+              bs4Dash::valueBox(
+                value = textOutput(ns("max_age")),
+                subtitle = "Ältester Wein",
+                icon = icon("hourglass-end"),
+                color = "primary"
+              ),
+              bs4Dash::valueBox(
+                value = textOutput(ns("most_frequent_region")),
+                subtitle = "Häufigstes Anbaugebiet",
+                icon = icon("map-marker-alt"),
+                color = "primary"
+              )
+            ),
+            fluidRow(
+              bs4Dash::box(
+                title = "Jahrgangsverteilung",
+                status = "primary",
+                solidHeader = TRUE,
+                plotOutput(ns("plot_vintage"))
+              ),
+              bs4Dash::box(
+                title = "Anbaugebiete",
+                status = "primary",
+                solidHeader = TRUE,
+                plotOutput(ns("plot_region"))
+              )
+            )
           ),
           bs4Dash::tabItem(
             tabName = "wines",
@@ -45,8 +85,8 @@ mod_dashboard_server <- function(id){
     wines <- reactiveVal(
       data.frame(
         rowid = c(1, 2, 3, 4, 5),
-        shelf = c("101", "202", "303", "404", "505"),
-        amount = c(1, 3, 1, 2, 1),
+        shelf_slot = c("101", "202", "303", "404", "505"),
+        bottle_count = c(1, 3, 1, 2, 1),
         vintage = c(2015, 2018, 2019, 2016, 2020),
         variety = c("Riesling", "Cabernet Sauvignon", "Spätburgunder", "Sangiovese", "Malbec"),
         name = c("Müller Thurgau", "Margaux", "Schmidt Pinot Noir", "Sassicaia", "Catena Alta"),
@@ -56,9 +96,64 @@ mod_dashboard_server <- function(id){
       )
     )
 
-    shelf_cap <- reactiveVal(6)
+    shelf_slot_cap <- reactiveVal(6)
 
-    mod_wines_server("wines_1", wines, shelf_cap)
+    output$total_amount <- renderText({
+      sum(wines()$bottle_count)
+    })
+
+    output$mean_age <- renderText({
+      weighted.mean(Sys.Date() |> format("%Y") |> as.numeric() -
+                      wines()$vintage, wines()$bottle_count) |>
+        paste("Jahre")
+    })
+
+    output$max_age <- renderText({
+      max(Sys.Date() |> format("%Y") |> as.numeric() - wines()$vintage) |>
+        paste("Jahre")
+    })
+
+    output$most_frequent_region <- renderText({
+      wines() |>
+        dplyr::group_by(region) |>
+        dplyr::summarise(total_bottles = sum(bottle_count)) |>
+        dplyr::arrange(dplyr::desc(total_bottles)) |>
+        dplyr::slice(1) |>
+        dplyr::pull(region)
+    })
+
+    output$plot_vintage <- renderPlot({
+      ggplot2::ggplot(wines(), ggplot2::aes(x = factor(vintage))) +
+        ggplot2::geom_bar(ggplot2::aes(weight = bottle_count), fill = "steelblue") +
+        ggplot2::labs(
+          x = "Jahrgang",
+          y = "Flaschenanzahl"
+        ) +
+        ggplot2::theme_minimal()
+    })
+
+    output$plot_region <- renderPlot({
+      wines() |>
+        dplyr::group_by(region) |>
+        dplyr::summarize(total_bottles = sum(bottle_count)) |>
+        dplyr::ungroup() |>
+        ggplot2::ggplot(ggplot2::aes(x = "", y = total_bottles, fill = region)) +
+        ggplot2::geom_bar(width = 1, stat = "identity") +
+        ggplot2::coord_polar("y") +
+        ggplot2::labs(
+          fill = "Region",
+          x = NULL,
+          y = NULL
+        ) +
+        ggplot2::theme_void() +
+        ggplot2::theme(
+          legend.position = "right",
+          legend.title = ggplot2::element_text(size = 14),
+          legend.text = ggplot2::element_text(size = 12)
+        )
+    })
+
+    mod_wines_server("wines_1", wines, shelf_slot_cap)
   })
 }
 
