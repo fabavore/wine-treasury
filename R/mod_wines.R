@@ -69,18 +69,49 @@ mod_wines_server <- function(id, wines, shelf_cap){
     })
 
     observe({
-      showModal(add_wine_modal(ns, wines, shelf_cap))
+      showModal(add_wine_modal(ns, wines(), shelf_cap()))
     }) |> bindEvent(input$btn_add)
 
     observe({
+      shinyjs::toggleState("btn_add_confirm", condition = input$shelf != "")
+    })
+
+    observe({
+      wines() |>
+        dplyr::rows_append(
+          tibble::tibble(
+            rowid = max(wines()$rowid) + 1,
+            shelf = input$nshelf,
+            amount = input$amount,
+            vintage = input$vintage,
+            variety = paste(input$variety, collapse = ", "),
+            name = input$name,
+            winery = input$winery,
+            region = input$region,
+            country = input$country
+          )
+        ) |>
+        wines()
       removeModal()
     }) |> bindEvent(input$btn_add_confirm)
 
     observe({
-      showModal(remove_wine_modal(ns, wine_selected, cols))
+      wine <- wine_selected()
+      showModal(remove_wine_modal(ns, wine, cols))
     }) |> bindEvent(input$btn_remove)
 
     observe({
+      update_amount <- wine_selected() |> dplyr::pull(amount) - input$remove_amount
+      wine <- wine_selected() |> dplyr::mutate(amount = update_amount)
+      if (update_amount > 0) {
+        wines() |>
+          dplyr::rows_update(wine, by = "rowid") |>
+          wines()
+      } else if (update_amount == 0) {
+        wines() |>
+          dplyr::rows_delete(wine, by = "rowid") |>
+          wines()
+      }
       removeModal()
     }) |> bindEvent(input$btn_remove_confirm)
   })
