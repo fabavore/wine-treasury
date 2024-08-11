@@ -17,7 +17,7 @@ mod_dashboard_ui <- function(id){
       sidebar = bs4Dash::dashboardSidebar(
         bs4Dash::sidebarMenu(
           bs4Dash::menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-          bs4Dash::menuItem("Weine", tabName = "wines", icon = icon("wine-bottle"))
+          bs4Dash::menuItem("Weine", tabName = "wines", icon = icon("wine-bottle"), selected = T)
         )
       ),
       body = bs4Dash::dashboardBody(
@@ -42,7 +42,13 @@ mod_dashboard_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    mod_wines_server("wines_1")
+    wines <- reactiveVal({
+      fakir::fake_products(5)
+    })
+
+    shelf_cap <- reactiveVal(6)
+
+    mod_wines_server("wines_1", wines, shelf_cap)
   })
 }
 
