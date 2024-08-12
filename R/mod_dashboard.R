@@ -78,23 +78,9 @@ mod_dashboard_ui <- function(id){
 #' dashboard Server Functions
 #'
 #' @noRd
-mod_dashboard_server <- function(id){
+mod_dashboard_server <- function(id, wines){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-
-    wines <- reactiveVal(
-      data.frame(
-        rowid = c(1, 2, 3, 4, 5),
-        shelf_slot = c("101", "202", "303", "404", "505"),
-        bottle_count = c(1, 3, 1, 2, 1),
-        vintage = c(2015, 2018, 2019, 2016, 2020),
-        variety = c("Riesling", "Cabernet Sauvignon", "Spätburgunder", "Sangiovese", "Malbec"),
-        name = c("Müller Thurgau", "Margaux", "Schmidt Pinot Noir", "Sassicaia", "Catena Alta"),
-        winery = c("Weingut Müller", "Château Margaux", "Weingut Schmidt", "Tenuta San Guido", "Bodega Catena Zapata"),
-        region = c("Mosel", "Bordeaux", "Pfalz", "Toskana", "Mendoza"),
-        country = c("Deutschland", "Frankreich", "Deutschland", "Italien", "Argentinien")
-      )
-    )
 
     shelf_slot_cap <- reactiveVal(6)
 
@@ -115,9 +101,8 @@ mod_dashboard_server <- function(id){
 
     output$most_frequent_region <- renderText({
       wines() |>
-        dplyr::group_by(region) |>
-        dplyr::summarise(total_bottles = sum(bottle_count)) |>
-        dplyr::arrange(dplyr::desc(total_bottles)) |>
+        dplyr::count(region, wt = bottle_count) |>
+        dplyr::arrange(dplyr::desc(n)) |>
         dplyr::slice(1) |>
         dplyr::pull(region)
     })
